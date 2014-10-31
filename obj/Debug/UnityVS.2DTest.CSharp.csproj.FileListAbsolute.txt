@@ -1,0 +1,11 @@
+G:\Code\2DTest\Temp\UnityVS_bin\Debug\Assembly-CSharp.dll
+G:\Code\2DTest\Temp\UnityVS_bin\Debug\Assembly-CSharp.pdb
+G:\Code\2DTest\Temp\UnityVS_bin\Debug\UnityEditor.dll
+G:\Code\2DTest\Temp\UnityVS_bin\Debug\UnityEngine.dll
+G:\Code\2DTest\Temp\UnityVS_bin\Debug\UnityEngine.UI.dll
+G:\Code\2DTest\Temp\UnityVS_bin\Debug\UnityEngine.xml
+G:\Code\2DTest\Temp\UnityVS_bin\Debug\UnityEditor.xml
+G:\Code\2DTest\Temp\UnityVS_bin\Debug\UnityEngine.UI.xml
+G:\Code\2DTest\obj\Debug\UnityVS.2DTest.CSharp.csprojResolveAssemblyReference.cache
+G:\Code\2DTest\obj\Debug\Assembly-CSharp.dll
+G:\Code\2DTest\obj\Debug\Assembly-CSharp.pdb

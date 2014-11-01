@@ -1,0 +1,11 @@
+G:\Code\HalloweenJam\Temp\UnityVS_bin\Debug\Assembly-CSharp.dll
+G:\Code\HalloweenJam\Temp\UnityVS_bin\Debug\Assembly-CSharp.pdb
+G:\Code\HalloweenJam\Temp\UnityVS_bin\Debug\UnityEditor.dll
+G:\Code\HalloweenJam\Temp\UnityVS_bin\Debug\UnityEngine.dll
+G:\Code\HalloweenJam\Temp\UnityVS_bin\Debug\UnityEngine.UI.dll
+G:\Code\HalloweenJam\Temp\UnityVS_bin\Debug\UnityEngine.xml
+G:\Code\HalloweenJam\Temp\UnityVS_bin\Debug\UnityEditor.xml
+G:\Code\HalloweenJam\Temp\UnityVS_bin\Debug\UnityEngine.UI.xml
+G:\Code\HalloweenJam\obj\Debug\UnityVS.HalloweenJam.CSharp.csprojResolveAssemblyReference.cache
+G:\Code\HalloweenJam\obj\Debug\Assembly-CSharp.dll
+G:\Code\HalloweenJam\obj\Debug\Assembly-CSharp.pdb

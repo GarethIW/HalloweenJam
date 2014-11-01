@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class Actor : MonoBehaviour {
 
@@ -16,6 +18,8 @@ public class Actor : MonoBehaviour {
 
     public Transform NavigationNodes;
 
+    public Transform NearestNode;
+
     public string TestNode = "";
 
     // States
@@ -25,16 +29,17 @@ public class Actor : MonoBehaviour {
     private float hintAlpha = 0f;
     private Vector2 actualSize = new Vector2(7f, 7f);
 
+    private tk2dSpriteAnimator anim;
+
     void Awake()
     {
         turntarget = actualSize.x;
+
+        //anim = GetComponent<tk2dSpriteAnimator>();
     }
 
     void FixedUpdate()
     {
-       
-
-
         if (Target.x < transform.position.x) turntarget = -actualSize.x;
         if (Target.x > transform.position.x) turntarget = actualSize.x;
 
@@ -50,11 +55,60 @@ public class Actor : MonoBehaviour {
             Navigate(TestNode);
         }
 
+        GetNearestNode();
     }
 
     void Navigate(string nodeName)
     {
-        
+        Transform destNode = NavigationNodes.FindChild(nodeName);
+        List<Transform> pathNodes = new List<Transform>();
+
+        if (destNode == null)
+        {
+            HintText("");
+            return;
+        }
+
+        TestNode = "";
+
+        string debugText = "Going to: " + destNode.name;
+
+        pathNodes.Add(NearestNode);
+
+        List<Transform> path = FindPath(NearestNode, destNode);
+
+        HintText(debugText);
+    }
+
+    private List<Transform> FindPath(Transform startNode, Transform destNode)
+    {
+        List<Transform> returnPath = new List<Transform>();
+
+
+
+        return returnPath;
+    }
+
+    void GetNearestNode()
+    {
+        float dist = 9999f;
+
+        for (int i = 0; i < NavigationNodes.childCount; i++)
+        {
+            var n = NavigationNodes.GetChild(i);
+
+            if (Vector3.Distance(transform.position, n.position) < dist)
+            {
+                dist = Vector3.Distance(transform.position, n.position);
+                NearestNode = n;
+            }
+        }
+    }
+
+    public void HintText(string text)
+    {
+        transform.FindChild("Hint UI/Hint").GetComponent<Text>().text = text;
+        hintAlpha += 0.2f;
     }
 
     public void Use()

@@ -25,9 +25,13 @@ public class Player : MonoBehaviour {
     private float hintAlpha = 0f;
     private Vector2 actualSize = new Vector2(7f,7f);
 
+    private tk2dSpriteAnimator anim;
+
     void Awake()
     {
-        turntarget = actualSize.x;        
+        turntarget = actualSize.x;
+
+        anim = Sprite.GetComponent<tk2dSpriteAnimator>();
     }
 
     void FixedUpdate() {
@@ -46,6 +50,9 @@ public class Player : MonoBehaviour {
 
             Speed = walkSpeed;
             rigidbody.velocity = transform.TransformDirection(new Vector3(h, 0, v).normalized) * Speed;
+
+            if(rigidbody.velocity.magnitude>0f) anim.Play("Walk");
+            else anim.Play("Idle");
         }
 
         Sprite.localScale = Vector3.Lerp(Sprite.transform.localScale, new Vector3(turntarget, actualSize.y, 1f), 0.25f);

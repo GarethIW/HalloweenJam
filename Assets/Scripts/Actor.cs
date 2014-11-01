@@ -101,11 +101,11 @@ public class Actor : MonoBehaviour {
         {
             case "LadderTop":
             case "LadderBottom":
-                HintText("Use Ladder");
+                
                 break;
             case "Stairs1Top":
             case "Stairs1Bottom":
-                HintText("Use Stairs");
+               
                 break;
         }
 
@@ -117,16 +117,9 @@ public class Actor : MonoBehaviour {
         CurrentTrigger = null;
     }
 
-    public void HintText(string text)
-    {
-        transform.FindChild("Hint UI/Hint").GetComponent<Text>().text = text;
-        hintAlpha += 0.2f;
-    }
-
     IEnumerator MoveToTarget(Vector3 source, Vector3 target, float speed)
     {
-        IsMovingSelf = true;
-
+      
         float cur = 0f;
         while (cur < 1f)
         {
@@ -140,6 +133,5 @@ public class Actor : MonoBehaviour {
         }
 
         IsUsingLadder = false;
-        IsMovingSelf = false;
     }
 }

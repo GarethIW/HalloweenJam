@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
@@ -19,6 +20,7 @@ public class Actor : MonoBehaviour {
     public Transform NavigationNodes;
 
     public Transform NearestNode;
+    public List<Transform> PathNodes;
 
     public string TestNode = "";
 
@@ -56,6 +58,22 @@ public class Actor : MonoBehaviour {
         }
 
         GetNearestNode();
+
+        if (PathNodes.Count > 0)
+        {
+            Transform targ = PathNodes[0];
+            Target = targ.position;
+            float dist = Vector3.Distance(transform.position, targ.position);
+
+            if (dist > 0.2f)
+            {
+                transform.position = Vector3.MoveTowards(transform.position, targ.position, 0.1f);
+            }
+            else
+            {
+                PathNodes.RemoveAt(0);
+            }
+        }
     }
 
     void Navigate(string nodeName)
@@ -71,22 +89,46 @@ public class Actor : MonoBehaviour {
 
         TestNode = "";
 
-        string debugText = "Going to: " + destNode.name;
+        string debugText = "Going to: " + destNode.name + " via ";
 
         pathNodes.Add(NearestNode);
 
-        List<Transform> path = FindPath(NearestNode, destNode);
+        List<Transform> path = WalkPath(pathNodes.ToArray(), destNode);
+
+        if (path != null)
+        {
+            foreach (Transform t in path)
+            {
+                debugText += t.name + ", ";
+            }
+        }
 
         HintText(debugText);
+
+        PathNodes = path;
     }
 
-    private List<Transform> FindPath(Transform startNode, Transform destNode)
+    private List<Transform> WalkPath(Transform[] pathNodes, Transform destNode)
     {
-        List<Transform> returnPath = new List<Transform>();
+        Node n = pathNodes[pathNodes.Length - 1].GetComponent<Node>();
 
+        if (n.transform == destNode) return pathNodes.ToList();
 
+        for (int i = 0; i < n.ConnectedNodes.Count; i++)
+        {
+            if (pathNodes.Contains(n.ConnectedNodes[i])) continue;
 
-        return returnPath;
+            List<Transform> thisPath = new List<Transform>();
+            thisPath.AddRange(pathNodes);
+            thisPath.Add(n.ConnectedNodes[i].transform);
+
+            if (n.ConnectedNodes[i] == destNode) return thisPath;
+            
+            List<Transform> newPath = WalkPath(thisPath.ToArray(), destNode);
+            if (newPath != null) return newPath;
+        }
+
+        return null;
     }
 
     void GetNearestNode()

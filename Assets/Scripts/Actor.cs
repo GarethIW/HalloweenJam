@@ -22,6 +22,8 @@ public class Actor : MonoBehaviour {
     public Transform NearestNode;
     public List<Transform> PathNodes;
 
+    public string AnimName;
+
     public string TestNode = "";
 
     // States
@@ -29,7 +31,7 @@ public class Actor : MonoBehaviour {
 
     private float turntarget = 12f;
     private float hintAlpha = 0f;
-    private Vector2 actualSize = new Vector2(7f, 7f);
+    private Vector2 actualSize = new Vector2(8f, 8f);
 
     private tk2dSpriteAnimator anim;
 
@@ -37,13 +39,13 @@ public class Actor : MonoBehaviour {
     {
         turntarget = actualSize.x;
 
-        //anim = GetComponent<tk2dSpriteAnimator>();
+        anim = Sprite.GetComponent<tk2dSpriteAnimator>();
     }
 
     void FixedUpdate()
     {
-        if (Target.x < transform.position.x) turntarget = -actualSize.x;
-        if (Target.x > transform.position.x) turntarget = actualSize.x;
+        if (Target.x > transform.position.x) turntarget = -actualSize.x;
+        if (Target.x < transform.position.x) turntarget = actualSize.x;
 
         //Speed = walkSpeed;
         //rigidbody.velocity = transform.TransformDirection(new Vector3(h, 0, v).normalized) * Speed;
@@ -61,6 +63,13 @@ public class Actor : MonoBehaviour {
 
         if (PathNodes.Count > 0)
         {
+            string debugText = "Going to: " + PathNodes[PathNodes.Count-1].name + " via\n";
+            foreach (Transform t in PathNodes)
+            {
+                debugText += t.name + "\n";
+            }
+            HintText(debugText);
+
             Transform targ = PathNodes[0];
             Target = targ.position;
             float dist = Vector3.Distance(transform.position, targ.position);
@@ -68,14 +77,40 @@ public class Actor : MonoBehaviour {
             if (dist > 0.2f)
             {
                 transform.position = Vector3.MoveTowards(transform.position, targ.position, 0.1f);
+                if (IsUsingLadder)
+                {
+                    if (!anim.IsPlaying(AnimName + "LadderTransitionOn") && !anim.IsPlaying(AnimName + "LadderTransitionOff"))
+                        anim.Play(AnimName + "LadderClimb");
+                }
+                else anim.Play(AnimName + "Walk");
             }
             else
             {
+                if (PathNodes[0].name == "Ladder Bottom" || PathNodes[0].name == "Ladder Top") anim.Play(AnimName + "LadderTransitionOff");
+                else anim.Play(AnimName + "Idle");
+                IsUsingLadder = false;
+
+                if (PathNodes.Count > 1)
+                {
+                    if (PathNodes[0].name == "Ladder Bottom" && PathNodes[1].name == "Ladder Top")
+                    {
+                        anim.Play(AnimName + "LadderTransitionOn");
+                        IsUsingLadder = true;
+                    }
+                    if (PathNodes[0].name == "Ladder Top" && PathNodes[1].name == "Ladder Bottom")
+                    {
+                        anim.Play(AnimName + "LadderTransitionOn");
+                        IsUsingLadder = true;
+                    }
+                }
+
                 PathNodes.RemoveAt(0);
             }
         }
         else
         {
+            HintText("");
+
             if (Random.Range(0, 500) == 0)
             {
                 Navigate(GetRandomNode().name);
@@ -96,23 +131,16 @@ public class Actor : MonoBehaviour {
 
         TestNode = "";
 
-        string debugText = "Going to: " + destNode.name + " via ";
-
         pathNodes.Add(NearestNode);
 
         List<Transform> path = WalkPath(pathNodes.ToArray(), destNode);
 
-        if (path != null)
-        {
-            foreach (Transform t in path)
-            {
-                debugText += t.name + ", ";
-            }
-        }
-
-        HintText(debugText);
-
         PathNodes = path;
+
+        if (PathNodes != null && PathNodes.Count > 0)
+        {
+            if (PathNodes[0].name == "LadderBottom" && PathNodes[1].name == "LadderTop") anim.Play(AnimName + "LadderTransitionOn");
+        }
     }
 
     private List<Transform> WalkPath(Transform[] pathNodes, Transform destNode)
@@ -159,7 +187,7 @@ public class Actor : MonoBehaviour {
 
     Transform GetRandomNode()
     {
-        return NavigationNodes.GetChild(Random.Range(0, NavigationNodes.childCount - 1));
+        return NavigationNodes.GetChild(Random.Range(0, NavigationNodes.childCount));
     }
 
     public void HintText(string text)

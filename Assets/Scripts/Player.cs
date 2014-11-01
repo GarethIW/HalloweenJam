@@ -41,9 +41,10 @@ public class Player : MonoBehaviour {
             //GetComponent<CapsuleCollider>().enabled = false;
             if (IsUsingLadder)
             {
-                
+                if (!anim.IsPlaying("MonsterLadderTransferOn") && !anim.IsPlaying("MonsterLadderTransferOff"))
+                    anim.Play("MonsterLadderClimb");
             }
-            else anim.Play("Walk");
+            else anim.Play("MonsterWalk");
         }
         else
         {
@@ -56,8 +57,11 @@ public class Player : MonoBehaviour {
             Speed = walkSpeed;
             rigidbody.velocity = transform.TransformDirection(new Vector3(h, 0, v).normalized) * Speed;
 
-            if(rigidbody.velocity.magnitude>0f) anim.Play("Walk");
-            else anim.Play("Idle");
+            if (!anim.IsPlaying("MonsterLadderTransferOn") && !anim.IsPlaying("MonsterLadderTransferOff"))
+            {
+                if (rigidbody.velocity.magnitude > 0f) anim.Play("MonsterWalk");
+                else anim.Play("MonsterIdle");
+            }
         }
 
         Sprite.localScale = Vector3.Lerp(Sprite.transform.localScale, new Vector3(turntarget, actualSize.y, 1f), 0.25f);
@@ -82,12 +86,14 @@ public class Player : MonoBehaviour {
                 transform.position = CurrentTrigger.transform.position;
                 //transform.position = GameObject.Find("LadderBottom").transform.position;
                 IsUsingLadder = true;
+                anim.Play("MonsterLadderTransferOn");
                 StartMoveTo(CurrentTrigger.transform.position, GameObject.Find("LadderBottom").transform.position);
                 
                 break;
             case "LadderBottom":
                 //transform.position = CurrentTrigger.transform.position;
                 IsUsingLadder = true;
+                anim.Play("MonsterLadderTransferOn");
                 StartMoveTo(CurrentTrigger.transform.position, GameObject.Find("LadderTop").transform.position);
 
                 break;
@@ -152,6 +158,11 @@ public class Player : MonoBehaviour {
             if (transform.position.x > target.x) turntarget = actualSize.x;
 
             yield return null;
+        }
+
+        if (IsUsingLadder)
+        {
+            anim.Play("MonsterLadderTransferOff");
         }
 
         IsUsingLadder = false;

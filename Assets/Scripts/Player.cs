@@ -39,6 +39,11 @@ public class Player : MonoBehaviour {
         if (IsMovingSelf)
         {
             //GetComponent<CapsuleCollider>().enabled = false;
+            if (IsUsingLadder)
+            {
+                
+            }
+            else anim.Play("Walk");
         }
         else
         {

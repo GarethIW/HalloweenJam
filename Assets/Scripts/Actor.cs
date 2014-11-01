@@ -57,7 +57,7 @@ public class Actor : MonoBehaviour {
             Navigate(TestNode);
         }
 
-        GetNearestNode();
+        NearestNode = GetNearestNode();
 
         if (PathNodes.Count > 0)
         {
@@ -72,6 +72,13 @@ public class Actor : MonoBehaviour {
             else
             {
                 PathNodes.RemoveAt(0);
+            }
+        }
+        else
+        {
+            if (Random.Range(0, 500) == 0)
+            {
+                Navigate(GetRandomNode().name);
             }
         }
     }
@@ -131,9 +138,10 @@ public class Actor : MonoBehaviour {
         return null;
     }
 
-    void GetNearestNode()
+    Transform GetNearestNode()
     {
         float dist = 9999f;
+        Transform nearest = null;
 
         for (int i = 0; i < NavigationNodes.childCount; i++)
         {
@@ -142,9 +150,16 @@ public class Actor : MonoBehaviour {
             if (Vector3.Distance(transform.position, n.position) < dist)
             {
                 dist = Vector3.Distance(transform.position, n.position);
-                NearestNode = n;
+                nearest = n;
             }
         }
+
+        return nearest;
+    }
+
+    Transform GetRandomNode()
+    {
+        return NavigationNodes.GetChild(Random.Range(0, NavigationNodes.childCount - 1));
     }
 
     public void HintText(string text)

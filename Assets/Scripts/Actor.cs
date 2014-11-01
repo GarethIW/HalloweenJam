@@ -4,8 +4,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-public class Actor : MonoBehaviour {
+public enum AIState
+{
+    Normal,
+    RunningAway,
+    BeingBrave
+}
 
+public class Actor : MonoBehaviour {
 
     // "Physics"
     public float walkSpeed = 0.000001f;
@@ -22,44 +28,45 @@ public class Actor : MonoBehaviour {
     public Transform NearestNode;
     public List<Transform> PathNodes;
 
+    public LayerMask LookMask;
+
     public string AnimName;
 
     public string TestNode = "";
 
     // States
+    public AIState State = AIState.Normal;
     public bool IsUsingLadder = false;
+
+    // Stats
+    public float Bravery = 25f;
 
     private float turntarget = 12f;
     private float hintAlpha = 0f;
+    private int faceDir = 1;
     private Vector2 actualSize = new Vector2(8f, 8f);
+    private float statsTick = 0f;
 
     private tk2dSpriteAnimator anim;
+
+    private Transform monster;
 
     void Awake()
     {
         turntarget = actualSize.x;
 
         anim = Sprite.GetComponent<tk2dSpriteAnimator>();
+        monster = GameObject.Find("Player").transform;
     }
 
     void FixedUpdate()
     {
-        if (Target.x > transform.position.x) turntarget = -actualSize.x;
-        if (Target.x < transform.position.x) turntarget = actualSize.x;
-
-        //Speed = walkSpeed;
-        //rigidbody.velocity = transform.TransformDirection(new Vector3(h, 0, v).normalized) * Speed;
-       
-
-        Sprite.localScale = Vector3.Lerp(Sprite.transform.localScale, new Vector3(turntarget, actualSize.y, 1f), 0.25f);
-
-
         if (TestNode != "")
         {
             Navigate(TestNode);
         }
 
-        NearestNode = GetNearestNode();
+        NearestNode = GetNearestNode(transform.position);
 
         if (PathNodes.Count > 0)
         {
@@ -70,13 +77,12 @@ public class Actor : MonoBehaviour {
             }
             HintText(debugText);
 
-            Transform targ = PathNodes[0];
-            Target = targ.position;
-            float dist = Vector3.Distance(transform.position, targ.position);
+            
+            float dist = Vector3.Distance(transform.position, Target);
 
             if (dist > 0.2f)
             {
-                transform.position = Vector3.MoveTowards(transform.position, targ.position, 0.1f);
+                transform.position = Vector3.MoveTowards(transform.position, Target, State == AIState.RunningAway ? 0.15f : 0.1f);
                 if (IsUsingLadder)
                 {
                     if (!anim.IsPlaying(AnimName + "LadderTransitionOn") && !anim.IsPlaying(AnimName + "LadderTransitionOff"))
@@ -105,17 +111,114 @@ public class Actor : MonoBehaviour {
                 }
 
                 PathNodes.RemoveAt(0);
+
+                if (PathNodes.Count > 0)
+                {
+                    Transform targ = PathNodes[0];
+                    Vector3 sphere = (Random.insideUnitSphere*
+                                      (State == AIState.RunningAway && PathNodes.Count == 1 ? 1f : 0f));
+                    sphere.y = 0f;
+                    Target = targ.position + sphere;
+                }
             }
         }
         else
         {
             HintText("");
 
-            if (Random.Range(0, 500) == 0)
+            if (State == AIState.RunningAway || State == AIState.BeingBrave) State = AIState.Normal; //StartCoroutine(Helper.WaitThenCallback(3f, () => { State = AIState.Normal; }));
+        }
+
+        // AI?
+        Bravery = Mathf.Clamp(Bravery, 0f, 100f);
+
+        statsTick += Time.deltaTime;
+        if (statsTick >= 1f)
+        {
+            statsTick = 0f;
+
+            int numPeopleHere = 0;
+            foreach (var o in GameObject.FindGameObjectsWithTag("Actor"))
             {
-                Navigate(GetRandomNode().name);
+                if (o.transform == transform) continue;
+
+                if (Vector3.Distance(transform.position, o.transform.position) < 3f)
+                    numPeopleHere ++;
+            }
+
+            Bravery += numPeopleHere;
+            if (numPeopleHere == 0) Bravery -= 1f;
+        }
+
+        float distanceToMonster = Vector3.Distance(transform.position, monster.position);
+
+        switch (State)
+        {
+            case AIState.Normal:
+                if (PathNodes.Count == 0)
+                {
+                    if (Random.Range(0, 500) == 0)
+                    {
+                        Navigate(GetRandomNode().name);
+                    }
+                }
+
+                if (distanceToMonster < 7f && !IsUsingLadder)
+                {
+
+                    //Physics.Raycast(, 5f);
+                    if ((faceDir == 1 && monster.position.x > transform.position.x) ||
+                        (faceDir == -1 && monster.position.x < transform.position.x))
+                    {
+                        Ray lookRay = new Ray(transform.position + new Vector3(0f, 2.5f, 0f), ((monster.position + new Vector3(0f, 1.5f, 0f)) - (transform.position + new Vector3(0f, 2.5f, 0f))).normalized);
+                        Debug.DrawRay(lookRay.origin, lookRay.direction * 7f, Color.red);
+                        RaycastHit hitInfo;
+                        if (Physics.Raycast(lookRay, out hitInfo, 7f, LookMask))
+                        {
+                            if (hitInfo.transform.name == "Player")
+                            {
+                                HintText("I CAN SEE YOU!\nAnd I am feeling " + (int)Bravery + "% brave!");
+
+                                if (Bravery < 50f)
+                                {
+                                    State = AIState.RunningAway;
+                                    Navigate(GetNearestNode(GetNearestPerson(transform.position).position).name);
+                                }
+                                else
+                                {
+                                    State = AIState.BeingBrave;
+                                }
+                            }
+                        }
+
+
+                    }
+                }
+                break;
+            case AIState.RunningAway:
+                //Navigate(GetNearestNode(GetNearestPerson(transform.position).position).name);
+                break;
+            case AIState.BeingBrave:
+                //Target = monster.position;
+                break;
+        }
+
+        if (!IsUsingLadder)
+        {
+            if (Target.x > transform.position.x)
+            {
+                turntarget = -actualSize.x;
+                faceDir = 1;
+            }
+            if (Target.x < transform.position.x)
+            {
+                turntarget = actualSize.x;
+                faceDir = -1;
             }
         }
+        else turntarget = actualSize.x;
+
+        Sprite.localScale = Vector3.Lerp(Sprite.transform.localScale, new Vector3(turntarget, actualSize.y, 1f), 0.25f);
     }
 
     void Navigate(string nodeName)
@@ -137,9 +240,15 @@ public class Actor : MonoBehaviour {
 
         PathNodes = path;
 
-        if (PathNodes != null && PathNodes.Count > 0)
+        if (PathNodes != null && PathNodes.Count > 1)
         {
             if (PathNodes[0].name == "LadderBottom" && PathNodes[1].name == "LadderTop") anim.Play(AnimName + "LadderTransitionOn");
+
+            Transform targ = PathNodes[0];
+            Vector3 sphere = (Random.insideUnitSphere *
+                              (State == AIState.RunningAway && PathNodes.Count == 1 ? 1f : 0f));
+            sphere.y = 0f;
+            Target = targ.position + sphere;
         }
     }
 
@@ -166,7 +275,7 @@ public class Actor : MonoBehaviour {
         return null;
     }
 
-    Transform GetNearestNode()
+    Transform GetNearestNode(Vector3 pos)
     {
         float dist = 9999f;
         Transform nearest = null;
@@ -175,9 +284,9 @@ public class Actor : MonoBehaviour {
         {
             var n = NavigationNodes.GetChild(i);
 
-            if (Vector3.Distance(transform.position, n.position) < dist)
+            if (Vector3.Distance(pos, n.position) < dist)
             {
-                dist = Vector3.Distance(transform.position, n.position);
+                dist = Vector3.Distance(pos, n.position);
                 nearest = n;
             }
         }
@@ -188,6 +297,24 @@ public class Actor : MonoBehaviour {
     Transform GetRandomNode()
     {
         return NavigationNodes.GetChild(Random.Range(0, NavigationNodes.childCount));
+    }
+
+    Transform GetNearestPerson(Vector3 pos)
+    {
+        float dist = 9999f;
+        Transform nearest = null;
+        foreach (var o in GameObject.FindGameObjectsWithTag("Actor"))
+        {
+            if (o.transform == transform) continue;
+
+            if (Vector3.Distance(pos, o.transform.position) < dist)
+            {
+                dist = Vector3.Distance(pos, o.transform.position);
+                nearest = o.transform;
+            }
+        }
+
+        return nearest;
     }
 
     public void HintText(string text)

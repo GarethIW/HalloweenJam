@@ -92,6 +92,7 @@
     <Compile Include="Assets\Extensions\TK2DROOT\tk2dTileMap\Code\tk2dTileMapColliderBuilder2D.cs" />
     <Compile Include="Assets\Extensions\TK2DROOT\tk2dTileMap\Code\tk2dTileMapData.cs" />
     <Compile Include="Assets\Extensions\TK2DROOT\tk2dTileMap\Code\tk2dTileMapMeshBuilder.cs" />
+    <Compile Include="Assets\Scripts\Helper.cs" />
     <Compile Include="Assets\Scripts\MainCamera.cs" />
     <Compile Include="Assets\Scripts\Node.cs" />
     <Compile Include="Assets\Scripts\Player.cs" />

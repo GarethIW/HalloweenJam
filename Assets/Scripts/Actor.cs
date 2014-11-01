@@ -55,6 +55,8 @@ public class Actor : MonoBehaviour {
     {
         turntarget = actualSize.x;
 
+        Target = transform.position;
+
         anim = Sprite.GetComponent<tk2dSpriteAnimator>();
         monster = GameObject.Find("Player").transform;
     }

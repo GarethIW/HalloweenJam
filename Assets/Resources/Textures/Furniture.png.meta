@@ -1,0 +1,224 @@
+fileFormatVersion: 2
+guid: 674852ec6fadce04f9c49971923685ef
+TextureImporter:
+  fileIDToRecycleName:
+    21300000: Furniture
+    21300002: Furniture_0
+    21300004: Furniture_1
+    21300006: Furniture_2
+    21300008: Furniture_3
+    21300010: Furniture_4
+    21300012: Furniture_5
+    21300014: Furniture_6
+    21300016: Furniture_7
+    21300018: Furniture_8
+    21300020: Furniture_9
+    21300022: Furniture_10
+    21300024: WardrobeDoor_Closed
+    21300026: WardrobeDoor_Open
+    21300028: Furniture_13
+    21300030: Furniture_14
+    21300032: Furniture_15
+  serializedVersion: 2
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    linearTexture: 0
+    correctGamma: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: .25
+    normalMapFilter: 0
+  isReadable: 1
+  grayScaleToAlpha: 0
+  generateCubemap: 0
+  seamlessCubemap: 0
+  textureFormat: -3
+  maxTextureSize: 4096
+  textureSettings:
+    filterMode: 0
+    aniso: 1
+    mipBias: -1
+    wrapMode: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: .5, y: .5}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spritePixelsToUnits: 100
+  alphaIsTransparency: 1
+  textureType: 5
+  buildTargetSettings: []
+  spriteSheet:
+    sprites:
+    - name: Furniture_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 80
+        height: 96
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Furniture_1
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 48
+        width: 71
+        height: 41
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Furniture_2
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 0
+        width: 17
+        height: 37
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Furniture_3
+      rect:
+        serializedVersion: 2
+        x: 98
+        y: 0
+        width: 17
+        height: 37
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Furniture_4
+      rect:
+        serializedVersion: 2
+        x: 116
+        y: 0
+        width: 17
+        height: 37
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Furniture_5
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 0
+        width: 17
+        height: 37
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Furniture_6
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 0
+        width: 80
+        height: 32
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Furniture_7
+      rect:
+        serializedVersion: 2
+        x: 243
+        y: 0
+        width: 74
+        height: 25
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Furniture_8
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 48
+        width: 16
+        height: 37
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Furniture_9
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 48
+        width: 12
+        height: 43
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Furniture_10
+      rect:
+        serializedVersion: 2
+        x: 240
+        y: 48
+        width: 32
+        height: 48
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: WardrobeDoor_Closed
+      rect:
+        serializedVersion: 2
+        x: 273
+        y: 49
+        width: 15
+        height: 46
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: WardrobeDoor_Open
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 48
+        width: 13
+        height: 48
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Furniture_13
+      rect:
+        serializedVersion: 2
+        x: 157
+        y: 58
+        width: 11
+        height: 28
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Furniture_14
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 58
+        width: 11
+        height: 28
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+    - name: Furniture_15
+      rect:
+        serializedVersion: 2
+        x: 181
+        y: 58
+        width: 11
+        height: 28
+      alignment: 0
+      pivot: {x: .5, y: .5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+  spritePackingTag: 
+  userData: 

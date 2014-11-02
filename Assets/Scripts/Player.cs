@@ -8,7 +8,9 @@ public class Player : MonoBehaviour {
 	void Start () {
 	
 	}
-	
+
+    public Transform HUD;
+
 	// "Physics"
     public float walkSpeed = 0.000001f;
     public float SpeedLimit = 1f;
@@ -20,6 +22,10 @@ public class Player : MonoBehaviour {
     // States
     public bool IsUsingLadder = false;
     public bool IsMovingSelf = false;
+    public bool IsHiding = false;
+
+    // Stats
+    public float CaughtAmount = 0f;
 
     private float turntarget = 12f;
     private float hintAlpha = 0f;
@@ -34,7 +40,24 @@ public class Player : MonoBehaviour {
         anim = Sprite.GetComponent<tk2dSpriteAnimator>();
     }
 
-    void FixedUpdate() {
+    void FixedUpdate()
+    {
+        if (CaughtAmount >= 1f)
+        {
+            GameObject gameOverPanel = HUD.FindChild("GameOverPanel").gameObject;
+            gameOverPanel.GetComponent<Image>().color = Color.Lerp(gameOverPanel.GetComponent<Image>().color,Color.black*1f, 0.1f);
+
+            Text gameOverText = HUD.FindChild("GameOverPanel/Text1").GetComponent<Text>();
+            gameOverText.color = Color.Lerp(gameOverText.color, Color.red * 1f, 0.1f);
+            gameOverText = HUD.FindChild("GameOverPanel/Text2").GetComponent<Text>();
+            gameOverText.color = Color.Lerp(gameOverText.color, Color.white * 1f, 0.1f);
+
+            if(Input.GetKeyDown(KeyCode.Space) || Input.GetButtonDown("Use"))
+                Application.LoadLevel("HalloweenJam");
+
+            return;
+        }
+
         //Input
         if (IsMovingSelf)
         {
@@ -46,7 +69,7 @@ public class Player : MonoBehaviour {
             }
             else anim.Play("MonsterWalk");
         }
-        else
+        else if(!IsHiding)
         {
             float h = Input.GetAxis("Horizontal");
             float v = Input.GetAxis("Vertical");
@@ -74,6 +97,54 @@ public class Player : MonoBehaviour {
         {
             Use();
         }
+
+        // Hiding
+        if (IsHiding)
+        {
+            Sprite.renderer.enabled = false;
+        }
+        else
+        {
+            Sprite.renderer.enabled = true;
+        }
+
+        // Being Caught
+        int n = NumberOfCatchers();
+        CaughtAmount += (float)n*0.001f;
+        if (n == 0) CaughtAmount -= 0.001f;
+        CaughtAmount = Mathf.Clamp(CaughtAmount, 0f, 1f);
+
+        // HUD
+        Scrollbar caughtBar = HUD.FindChild("Panel/CatchMeter").GetComponent<Scrollbar>();
+        caughtBar.size = CaughtAmount;
+        if (CaughtAmount <= 0f)
+        {
+            ColorBlock cb = caughtBar.colors;
+            cb.disabledColor = Color.Lerp(caughtBar.colors.disabledColor, Color.red*0f, 0.01f);
+            caughtBar.colors = cb;
+        }
+        else
+        {
+            ColorBlock cb = caughtBar.colors;
+            cb.disabledColor = Color.Lerp(caughtBar.colors.disabledColor, Color.red * 1f, 0.01f);
+            caughtBar.colors = cb;
+        }
+    }
+
+    int NumberOfCatchers()
+    {
+        int numPeopleCatching = 0;
+        foreach (var o in GameObject.FindGameObjectsWithTag("Actor"))
+        {
+            if (Vector3.Distance(transform.position, o.transform.position) < 2f)
+            {
+                if (o.GetComponent<Actor>().State == AIState.Chasing)
+                    numPeopleCatching+=1;
+                
+            }
+        }
+
+        return numPeopleCatching;
     }
 
     public void Use()
@@ -106,7 +177,20 @@ public class Player : MonoBehaviour {
                 //transform.position = CurrentTrigger.transform.position;
                 //transform.position = GameObject.Find("Stairs1Top").transform.position;
                 StartMoveTo(CurrentTrigger.transform.position, GameObject.Find("Stairs1Top").transform.position);
+                break;
 
+            case "WardrobeTrigger":
+                if (!IsHiding)
+                {
+                    CurrentTrigger.GetComponentInParent<Wardrobe>().IsOpen = true;
+                    IsHiding = true;
+                    rigidbody.velocity = Vector3.zero;
+                }
+                else
+                {
+                    CurrentTrigger.GetComponentInParent<Wardrobe>().IsOpen = false;
+                    IsHiding = false;
+                }
                 break;
         }
     }
@@ -127,6 +211,10 @@ public class Player : MonoBehaviour {
             case "Stairs1Top":
             case "Stairs1Bottom":
                 HintText("Use Stairs");
+                break;
+            case "WardrobeTrigger":
+                if(!IsHiding)
+                    HintText("Hide");
                 break;
         }
 

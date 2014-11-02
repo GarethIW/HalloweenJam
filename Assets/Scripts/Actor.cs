@@ -8,7 +8,8 @@ public enum AIState
 {
     Normal,
     RunningAway,
-    BeingBrave
+    BeingBrave,
+    Chasing
 }
 
 public class Actor : MonoBehaviour {
@@ -46,6 +47,8 @@ public class Actor : MonoBehaviour {
     private int faceDir = 1;
     private Vector2 actualSize = new Vector2(8f, 8f);
     private float statsTick = 0f;
+    private float stateReset = 0f;
+    private string debugText;
 
     private tk2dSpriteAnimator anim;
 
@@ -63,6 +66,10 @@ public class Actor : MonoBehaviour {
 
     void FixedUpdate()
     {
+        debugText = "";
+        debugText += State.ToString() + "\n";
+        debugText += "Bravery: " + (int) Bravery + "%\n";
+
         if (TestNode != "")
         {
             Navigate(TestNode);
@@ -70,29 +77,33 @@ public class Actor : MonoBehaviour {
 
         NearestNode = GetNearestNode(transform.position);
 
-        if (PathNodes.Count > 0)
+        float dist = Vector3.Distance(transform.position, Target);
+
+        if (dist > 0.2f)
         {
-            string debugText = "Going to: " + PathNodes[PathNodes.Count-1].name + " via\n";
+            transform.position = Vector3.MoveTowards(transform.position, Target,
+                State == AIState.RunningAway || State == AIState.Chasing ? 0.15f : 0.1f);
+
+            if (IsUsingLadder)
+            {
+                if (!anim.IsPlaying(AnimName + "LadderTransitionOn") && !anim.IsPlaying(AnimName + "LadderTransitionOff"))
+                    anim.Play(AnimName + "LadderClimb");
+            }
+            else anim.Play(AnimName + "Walk");
+        }
+        else if(PathNodes.Count==0) anim.Play(AnimName + "Idle");
+
+       
+        if (PathNodes.Count > 0 && State != AIState.Chasing)
+        {
+            debugText += "Going to: " + PathNodes[PathNodes.Count-1].name + " via\n";
             foreach (Transform t in PathNodes)
             {
                 debugText += t.name + "\n";
             }
-            HintText(debugText);
+            //HintText(debugText);
 
-            
-            float dist = Vector3.Distance(transform.position, Target);
-
-            if (dist > 0.2f)
-            {
-                transform.position = Vector3.MoveTowards(transform.position, Target, State == AIState.RunningAway ? 0.15f : 0.1f);
-                if (IsUsingLadder)
-                {
-                    if (!anim.IsPlaying(AnimName + "LadderTransitionOn") && !anim.IsPlaying(AnimName + "LadderTransitionOff"))
-                        anim.Play(AnimName + "LadderClimb");
-                }
-                else anim.Play(AnimName + "Walk");
-            }
-            else
+            if (dist <= 0.2f)
             {
                 if (PathNodes[0].name == "Ladder Bottom" || PathNodes[0].name == "Ladder Top") anim.Play(AnimName + "LadderTransitionOff");
                 else anim.Play(AnimName + "Idle");
@@ -126,30 +137,30 @@ public class Actor : MonoBehaviour {
         }
         else
         {
-            HintText("");
+            //HintText("");
 
-            if (State == AIState.RunningAway || State == AIState.BeingBrave) State = AIState.Normal; //StartCoroutine(Helper.WaitThenCallback(3f, () => { State = AIState.Normal; }));
+            if (State == AIState.RunningAway) State = AIState.Normal; //StartCoroutine(Helper.WaitThenCallback(3f, () => { State = AIState.Normal; }));
         }
 
         // AI?
-        Bravery = Mathf.Clamp(Bravery, 0f, 100f);
+        Bravery = Mathf.Clamp(Bravery, 25f, 100f);
 
         statsTick += Time.deltaTime;
         if (statsTick >= 1f)
         {
             statsTick = 0f;
 
-            int numPeopleHere = 0;
+            int numPeopleHere = 1;
             foreach (var o in GameObject.FindGameObjectsWithTag("Actor"))
             {
                 if (o.transform == transform) continue;
 
-                if (Vector3.Distance(transform.position, o.transform.position) < 3f)
+                if (Vector3.Distance(transform.position, o.transform.position) < 6f)
                     numPeopleHere ++;
             }
 
             Bravery += numPeopleHere;
-            if (numPeopleHere == 0) Bravery -= 1f;
+            if (numPeopleHere <=1) Bravery -= 3f;
         }
 
         float distanceToMonster = Vector3.Distance(transform.position, monster.position);
@@ -165,43 +176,67 @@ public class Actor : MonoBehaviour {
                     }
                 }
 
-                if (distanceToMonster < 7f && !IsUsingLadder)
+                if (distanceToMonster < 7f)// && !IsUsingLadder && PathNodes.Count == 0)
                 {
 
                     //Physics.Raycast(, 5f);
-                    if ((faceDir == 1 && monster.position.x > transform.position.x) ||
-                        (faceDir == -1 && monster.position.x < transform.position.x))
+                    
+                    if (CanSeeMonster())
                     {
-                        Ray lookRay = new Ray(transform.position + new Vector3(0f, 2.5f, 0f), ((monster.position + new Vector3(0f, 1.5f, 0f)) - (transform.position + new Vector3(0f, 2.5f, 0f))).normalized);
-                        Debug.DrawRay(lookRay.origin, lookRay.direction * 7f, Color.red);
-                        RaycastHit hitInfo;
-                        if (Physics.Raycast(lookRay, out hitInfo, 7f, LookMask))
+                        if (Bravery < 50f)
                         {
-                            if (hitInfo.transform.name == "Player")
-                            {
-                                HintText("I CAN SEE YOU!\nAnd I am feeling " + (int)Bravery + "% brave!");
-
-                                if (Bravery < 50f)
-                                {
-                                    State = AIState.RunningAway;
-                                    Navigate(GetNearestNode(GetNearestPerson(transform.position).position).name);
-                                }
-                                else
-                                {
-                                    State = AIState.BeingBrave;
-                                }
-                            }
+                            State = AIState.RunningAway;
+                            Navigate(GetNearestNode(GetNearestPerson(transform.position).position).name);
                         }
-
-
+                        else
+                        {
+                            State = AIState.BeingBrave;
+                            PathNodes.Clear();
+                            stateReset = 0f;
+                        }
                     }
+                    
                 }
                 break;
             case AIState.RunningAway:
                 //Navigate(GetNearestNode(GetNearestPerson(transform.position).position).name);
                 break;
             case AIState.BeingBrave:
-                //Target = monster.position;
+                if (Bravery > 75f)
+                {
+                    if (CanSeeMonster() && (monster.position.y<transform.position.y+1f && monster.position.y> transform.position.y-1f))
+                    {
+                        Target = monster.position;
+                        State = AIState.Chasing;
+                        PathNodes.Clear();
+                    }
+                }
+
+                AlertEveryone();
+
+                if (Bravery < 50f) State = AIState.Normal;
+
+                if (CanSeeMonster()) stateReset = 0f;
+
+                stateReset += Time.deltaTime;
+                if(stateReset>=3f) State = AIState.Normal;
+                break;
+            case AIState.Chasing:
+                if (CanSeeMonster() && (monster.position.y < transform.position.y + 1f && monster.position.y > transform.position.y - 1f))
+                {
+                    if (Vector3.Distance(Target, monster.position) > 1f)
+                    {
+                        Transform targ = monster;
+                        Vector3 sphere = (Random.insideUnitSphere*1f);
+                        sphere.y = 0f;
+                        Target = targ.position + sphere;
+                        PathNodes.Clear();
+                    }
+
+                    State = AIState.Chasing;
+                }
+                else State = AIState.Normal;
+                if (Bravery <= 75f) State = AIState.Normal;
                 break;
         }
 
@@ -221,6 +256,19 @@ public class Actor : MonoBehaviour {
         else turntarget = actualSize.x;
 
         Sprite.localScale = Vector3.Lerp(Sprite.transform.localScale, new Vector3(turntarget, actualSize.y, 1f), 0.25f);
+
+        HintText(debugText);
+    }
+
+    void AlertEveryone()
+    {
+        foreach (var o in GameObject.FindGameObjectsWithTag("Actor"))
+        {
+            if (o.GetComponent<Actor>().State == AIState.Normal)
+            {
+                o.GetComponent<Actor>().Navigate(NearestNode.name);
+            }
+        }
     }
 
     void Navigate(string nodeName)
@@ -252,6 +300,27 @@ public class Actor : MonoBehaviour {
             sphere.y = 0f;
             Target = targ.position + sphere;
         }
+    }
+
+    private bool CanSeeMonster()
+    {
+        if (State!=AIState.Normal ||((faceDir == 1 && monster.position.x > transform.position.x) ||
+            (faceDir == -1 && monster.position.x < transform.position.x)))
+        {
+            Ray lookRay = new Ray(transform.position + new Vector3(0f, 2.5f, 0f),
+                ((monster.position + new Vector3(0f, 1.5f, 0f)) -
+                 (transform.position + new Vector3(0f, 2.5f, 0f))).normalized);
+            Debug.DrawRay(lookRay.origin, lookRay.direction*7f, Color.red);
+            RaycastHit hitInfo;
+            if (Physics.Raycast(lookRay, out hitInfo, 7f, LookMask))
+                if (hitInfo.transform.name == "Player" && !monster.GetComponent<Player>().IsHiding)
+                {
+                    debugText += "I CAN SEE YOU!\n";
+                    return true;
+                }
+        }
+
+        return false;
     }
 
     private List<Transform> WalkPath(Transform[] pathNodes, Transform destNode)

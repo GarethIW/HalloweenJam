@@ -48,7 +48,9 @@ public class Actor : MonoBehaviour {
     private Vector2 actualSize = new Vector2(8f, 8f);
     private float statsTick = 0f;
     private float stateReset = 0f;
+    private float standstillTick = 0f;
     private string debugText;
+    private bool hasAlerted = false;
 
     private tk2dSpriteAnimator anim;
 
@@ -140,6 +142,7 @@ public class Actor : MonoBehaviour {
             //HintText("");
 
             if (State == AIState.RunningAway) State = AIState.Normal; //StartCoroutine(Helper.WaitThenCallback(3f, () => { State = AIState.Normal; }));
+
         }
 
         // AI?
@@ -150,7 +153,7 @@ public class Actor : MonoBehaviour {
         {
             statsTick = 0f;
 
-            int numPeopleHere = 1;
+            int numPeopleHere = 0;
             foreach (var o in GameObject.FindGameObjectsWithTag("Actor"))
             {
                 if (o.transform == transform) continue;
@@ -159,8 +162,8 @@ public class Actor : MonoBehaviour {
                     numPeopleHere ++;
             }
 
-            Bravery += numPeopleHere;
-            if (numPeopleHere <=1) Bravery -= 3f;
+            Bravery += numPeopleHere * 2;
+            if (numPeopleHere ==0) Bravery -= 5f;
         }
 
         float distanceToMonster = Vector3.Distance(transform.position, monster.position);
@@ -168,9 +171,17 @@ public class Actor : MonoBehaviour {
         switch (State)
         {
             case AIState.Normal:
+                hasAlerted = false;
+
                 if (PathNodes.Count == 0)
                 {
                     if (Random.Range(0, 500) == 0)
+                    {
+                        Navigate(GetRandomNode().name);
+                    }
+
+                    standstillTick += Time.deltaTime;
+                    if (standstillTick > 5f)
                     {
                         Navigate(GetRandomNode().name);
                     }
@@ -183,14 +194,17 @@ public class Actor : MonoBehaviour {
                     
                     if (CanSeeMonster())
                     {
-                        if (Bravery < 50f)
+                        if (Bravery < 70f)
                         {
                             State = AIState.RunningAway;
-                            Navigate(GetNearestNode(GetNearestPerson(transform.position).position).name);
+                            Transform n = GetNearestNode(GetNearestPerson(transform.position).position);
+                            if (GetNearestNode(transform.position) == n) n = GetRandomNode();
+                            Navigate(n.name);
                         }
                         else
                         {
                             State = AIState.BeingBrave;
+                            hasAlerted = false;
                             PathNodes.Clear();
                             stateReset = 0f;
                         }
@@ -213,8 +227,13 @@ public class Actor : MonoBehaviour {
                 }
 
                 AlertEveryone();
+                hasAlerted = true;
 
-                if (Bravery < 50f) State = AIState.Normal;
+                if (Bravery < 70f)
+                {
+                    hasAlerted = false;
+                    State = AIState.Normal;
+                }
 
                 if (CanSeeMonster()) stateReset = 0f;
 
@@ -264,6 +283,8 @@ public class Actor : MonoBehaviour {
     {
         foreach (var o in GameObject.FindGameObjectsWithTag("Actor"))
         {
+            if (o == transform) continue;
+
             if (o.GetComponent<Actor>().State == AIState.Normal)
             {
                 o.GetComponent<Actor>().Navigate(NearestNode.name);
@@ -273,6 +294,8 @@ public class Actor : MonoBehaviour {
 
     void Navigate(string nodeName)
     {
+        PathNodes.Clear();
+
         Transform destNode = NavigationNodes.FindChild(nodeName);
         List<Transform> pathNodes = new List<Transform>();
 
@@ -299,6 +322,8 @@ public class Actor : MonoBehaviour {
                               (State == AIState.RunningAway && PathNodes.Count == 1 ? 1f : 0f));
             sphere.y = 0f;
             Target = targ.position + sphere;
+
+            standstillTick = 0f;
         }
     }
 

@@ -156,6 +156,7 @@
     <None Include="Assets\Extensions\TK2DROOT\tk2d\Shaders\PremulVertexColor.shader" />
     <None Include="Assets\Extensions\TK2DROOT\tk2d\Shaders\resources\BlendVertexColor.shader" />
     <None Include="Assets\Extensions\TK2DROOT\tk2d\Shaders\SolidVertexColor.shader" />
+    <None Include="Assets\Resources\Shaders\Actors.shader" />
     <None Include="Assets\Extensions\TK2DROOT\tk2d\Editor\tk2dExternal.dll" />
     <None Include="Assets\Extensions\TK2DROOT\tk2d\Editor\tk2dSkin.dll" />
     <None Include="Assets\Extensions\UnityVS\Editor\SyntaxTree.VisualStudio.Unity.Bridge.dll" />

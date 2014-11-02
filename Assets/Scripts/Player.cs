@@ -1,13 +1,9 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
 
 public class Player : MonoBehaviour {
-
-	// Use this for initialization
-	void Start () {
-	
-	}
 
     public Transform HUD;
 
@@ -27,9 +23,15 @@ public class Player : MonoBehaviour {
     // Stats
     public float CaughtAmount = 0f;
 
+    public Dictionary<string, AudioSource> Sounds = new Dictionary<string, AudioSource>();  
+
     private float turntarget = 12f;
     private float hintAlpha = 0f;
     private Vector2 actualSize = new Vector2(7f,7f);
+
+    private float fstepTime = 0f;
+
+    private float catchTextTimer = 0f;
 
     private tk2dSpriteAnimator anim;
 
@@ -38,6 +40,12 @@ public class Player : MonoBehaviour {
         turntarget = actualSize.x;
 
         anim = Sprite.GetComponent<tk2dSpriteAnimator>();
+
+        GameObject soundsObject = transform.FindChild("Audio").gameObject;
+        foreach (AudioSource a in soundsObject.GetComponents<AudioSource>())
+        {
+            Sounds.Add(a.clip.name, a);
+        }
     }
 
     void FixedUpdate()
@@ -66,8 +74,18 @@ public class Player : MonoBehaviour {
             {
                 if (!anim.IsPlaying("MonsterLadderTransferOn") && !anim.IsPlaying("MonsterLadderTransferOff"))
                     anim.Play("MonsterLadderClimb");
+
+                if(!Sounds["Ladder"].isPlaying) Sounds["Ladder"].Play();
             }
             else anim.Play("MonsterWalk");
+
+            fstepTime += Time.deltaTime;
+            if (fstepTime > 0.1f)
+            {
+                Sounds["fstep"].pitch = Random.Range(0.5f, 1.5f);
+                Sounds["fstep"].Play();
+                fstepTime = 0f;
+            }
         }
         else if(!IsHiding)
         {
@@ -79,6 +97,16 @@ public class Player : MonoBehaviour {
 
             Speed = walkSpeed;
             rigidbody.velocity = transform.TransformDirection(new Vector3(h, 0, v).normalized) * Speed;
+
+            if (rigidbody.velocity.magnitude > 0f)
+            {
+                fstepTime += Time.deltaTime;
+                if (fstepTime > 0.1f)
+                {
+                    Sounds["fstep"].Play();
+                    fstepTime = 0f;
+                }
+            }
 
             if (!anim.IsPlaying("MonsterLadderTransferOn") && !anim.IsPlaying("MonsterLadderTransferOff"))
             {
@@ -129,6 +157,20 @@ public class Player : MonoBehaviour {
             cb.disabledColor = Color.Lerp(caughtBar.colors.disabledColor, Color.red * 1f, 0.01f);
             caughtBar.colors = cb;
         }
+
+        Text caughtText = HUD.FindChild("Panel/CatchText").GetComponent<Text>();
+        if (NumberOfCatchers() > 0)
+        {
+            catchTextTimer += Time.deltaTime;
+            if (catchTextTimer > 0.1f)
+            {
+                caughtText.enabled = !caughtText.enabled;
+                catchTextTimer = 0f;
+            }
+        }
+        else caughtText.enabled = false;
+        //caughtText.color = Color.Lerp(caughtText.color, Color.red * 1f, 0.01f);
+
     }
 
     int NumberOfCatchers()
@@ -136,10 +178,10 @@ public class Player : MonoBehaviour {
         int numPeopleCatching = 0;
         foreach (var o in GameObject.FindGameObjectsWithTag("Actor"))
         {
-            if (Vector3.Distance(transform.position, o.transform.position) < 2f)
+            if (Vector3.Distance(transform.position, o.transform.position) < 3f)
             {
-                if (o.GetComponent<Actor>().State == AIState.Chasing)
-                    numPeopleCatching+=1;
+                if (o.GetComponent<Actor>().CanSeeMonster() && (o.GetComponent<Actor>().State == AIState.BeingBrave || o.GetComponent<Actor>().State == AIState.Chasing))
+                    numPeopleCatching += 1 + (int)Vector3.Distance(transform.position, o.transform.position);
                 
             }
         }
@@ -182,13 +224,13 @@ public class Player : MonoBehaviour {
             case "WardrobeTrigger":
                 if (!IsHiding)
                 {
-                    CurrentTrigger.GetComponentInParent<Wardrobe>().IsOpen = true;
+                    CurrentTrigger.GetComponentInParent<Wardrobe>().ToggleOpen(true);
                     IsHiding = true;
                     rigidbody.velocity = Vector3.zero;
                 }
                 else
                 {
-                    CurrentTrigger.GetComponentInParent<Wardrobe>().IsOpen = false;
+                    CurrentTrigger.GetComponentInParent<Wardrobe>().ToggleOpen(false);
                     IsHiding = false;
                 }
                 break;

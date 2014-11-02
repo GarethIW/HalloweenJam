@@ -42,6 +42,8 @@ public class Actor : MonoBehaviour {
     // Stats
     public float Bravery = 25f;
 
+    public Dictionary<string, AudioSource> Sounds = new Dictionary<string, AudioSource>();  
+
     private float turntarget = 12f;
     private float hintAlpha = 0f;
     private int faceDir = 1;
@@ -64,6 +66,12 @@ public class Actor : MonoBehaviour {
 
         anim = Sprite.GetComponent<tk2dSpriteAnimator>();
         monster = GameObject.Find("Player").transform;
+
+        GameObject soundsObject = transform.FindChild("Audio").gameObject;
+        foreach (AudioSource a in soundsObject.GetComponents<AudioSource>())
+        {
+            Sounds.Add(a.clip.name, a);
+        }
     }
 
     void FixedUpdate()
@@ -90,6 +98,8 @@ public class Actor : MonoBehaviour {
             {
                 if (!anim.IsPlaying(AnimName + "LadderTransitionOn") && !anim.IsPlaying(AnimName + "LadderTransitionOff"))
                     anim.Play(AnimName + "LadderClimb");
+
+                if (!Sounds["Ladder"].isPlaying) Sounds["Ladder"].Play();
             }
             else anim.Play(AnimName + "Walk");
         }
@@ -162,7 +172,7 @@ public class Actor : MonoBehaviour {
                     numPeopleHere ++;
             }
 
-            Bravery += numPeopleHere * 2;
+            Bravery += numPeopleHere * 3;
             if (numPeopleHere ==0) Bravery -= 5f;
         }
 
@@ -196,6 +206,8 @@ public class Actor : MonoBehaviour {
                     {
                         if (Bravery < 70f)
                         {
+                            if(!Sounds[transform.name + "Scream"].isPlaying) Sounds[transform.name + "Scream"].Play();
+
                             State = AIState.RunningAway;
                             Transform n = GetNearestNode(GetNearestPerson(transform.position).position);
                             if (GetNearestNode(transform.position) == n) n = GetRandomNode();
@@ -327,7 +339,7 @@ public class Actor : MonoBehaviour {
         }
     }
 
-    private bool CanSeeMonster()
+    public bool CanSeeMonster()
     {
         if (State!=AIState.Normal ||((faceDir == 1 && monster.position.x > transform.position.x) ||
             (faceDir == -1 && monster.position.x < transform.position.x)))
